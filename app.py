@@ -22,21 +22,24 @@ with st.sidebar:
     st.title("SDG 10 智慧平台")
     st.info("目標：減少資源分配不均")
     st.divider()
-    st.write("**核心團隊：**")
-    # 名單校正：吳暐承、唐正軒、紀重仰、黃騵褘
-    st.success("吳暐承、唐正軒\n紀重仰、黃騵褘")
     
-    # --- 管理員入口 (隱藏功能) ---
+    st.write("**核心團隊：**")
+    # 修正：團隊名稱分開顯示，不再連在一起
+    st.success("👤 吳暐承\n\n👤 唐正軒\n\n👤 紀重仰\n\n👤 黃騵褘")
+    
+    # --- 管理員入口 ---
     st.divider()
     admin_mode = st.checkbox("開啟管理員模式")
     is_authenticated = False
     if admin_mode:
+        # 修正：密碼設定為 1234
         pwd = st.text_input("輸入管理員密碼", type="password")
-        if pwd == "sdg10admin": 
+        if pwd == "1234": 
             is_authenticated = True
+            st.toast("管理員認證成功！")
         else:
             if pwd:
-                st.error("密碼錯誤")
+                st.error("密碼錯誤，請重新輸入")
 
 # --- 3. 實質匹配頁面 ---
 st.header("🤖 AI 實質資源匹配與效能驗證")
@@ -69,39 +72,38 @@ if not df.empty:
                 for _, row in st.session_state.results.iterrows():
                     with st.expander(f"📌 {row['name']}", expanded=True):
                         st.write(f"**實質內容：** {row['description']}")
-                        # 【實質跳轉核心】：確保點選前往申請時可以真的到官方網站
+                        st.write(f"**適合對象：** {row['target']}")
+                        # 實質跳轉功能
                         st.link_button(f"👉 立即前往官方網站", row["url"], type="primary")
                 
                 # --- 收集回饋並實質存檔 ---
                 st.divider()
                 st.subheader("📊 測試回饋與存檔")
-                # 滿意分數 1-10 分
                 feedback_score = st.slider("此結果的解決力度評分 (1-10)：", 1, 10, 10)
                 feedback_msg = st.text_area("給技術團隊的優化建議：")
                 
                 if st.button("提交回饋並儲存至後端"):
                     fb_df = pd.DataFrame([[u_need, feedback_score, feedback_msg]], columns=["類別", "評分", "建議"])
-                    # 資料存入 feedback.csv
                     fb_df.to_csv("feedback.csv", mode='a', index=False, header=not os.path.exists("feedback.csv"))
                     st.success("回饋已安全存入後端系統。")
             else:
                 st.warning("目前數據庫中尚無匹配項。")
 else:
-    st.error("請確認 resources.csv 是否已正確上傳至 GitHub")
+    st.error("請確認 resources.csv 檔案正確。")
 
-# --- 4. 隱藏的數據驗證中心 (只有管理員看得到) ---
+# --- 4. 管理員後端數據中心 ---
 if admin_mode and is_authenticated:
     st.divider()
     st.header("📊 管理員後端數據中心")
     if os.path.exists("feedback.csv"):
         try:
             display_df = pd.read_csv("feedback.csv")
-            st.write("這是目前儲存在後端的完整紀錄（一般使用者看不到此區塊）：")
-            st.dataframe(display_df, use_container_width=True)
+            st.write("這是目前儲存在後端的完整紀錄（一般使用者看不到）：")
+            st.dataframe(display_df.iloc[::-1], use_container_width=True) # 最新紀錄排在上面
             
             csv_data = display_df.to_csv(index=False).encode('utf-8-sig')
             st.download_button(label="📥 下載完整測試報告", data=csv_data, file_name="admin_report.csv")
         except:
             st.info("後端暫無可讀取的紀錄。")
     else:
-        st.info("目前後端尚無紀錄。")
+        st.info("目前後端尚未產生任何回饋紀錄。")
