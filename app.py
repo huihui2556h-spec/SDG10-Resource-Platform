@@ -24,14 +24,14 @@ with st.sidebar:
     st.divider()
     st.write("**核心團隊：**")
     # 名單校正：吳暐承、唐正軒、紀重仰、黃騵褘
-    st.success("吳暐承、唐正軒\n紀重仰、黃騵褘")
+    st.success("吳暐承、唐正軒、紀重仰、黃騵褘")
     
     # --- 管理員入口 (隱藏功能) ---
     st.divider()
     admin_mode = st.checkbox("開啟管理員模式")
     if admin_mode:
         pwd = st.text_input("輸入管理員密碼", type="password")
-        if pwd == "sdg10admin": # 這是你的管理員密碼，可以自己改
+        if pwd == "sdg10admin": 1234
             st.session_state.is_admin = True
         else:
             st.session_state.is_admin = False
