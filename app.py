@@ -10,9 +10,9 @@ st.set_page_config(page_title="SDG 10 智慧資源分配平台", layout="wide")
 @st.cache_data
 def load_db():
     try:
-        # 讀取同目錄下的 resources.csv
+        # 讀取 resources.csv 資料庫
         return pd.read_csv("resources.csv")
-    except Exception as e:
+    except Exception:
         return pd.DataFrame(columns=["category", "name", "target", "description", "url"])
 
 df = load_db()
@@ -23,10 +23,20 @@ with st.sidebar:
     st.info("目標：減少資源分配不均")
     st.divider()
     st.write("**核心團隊：**")
-    # 確保名單包含：吳暐承、唐正軒、紀重仰、黃騵褘
+    # 名單校正：吳暐承、唐正軒、紀重仰、黃騵褘
     st.success("吳暐承、唐正軒\n紀重仰、黃騵褘")
+    
+    # --- 管理員入口 (隱藏功能) ---
+    st.divider()
+    admin_mode = st.checkbox("開啟管理員模式")
+    if admin_mode:
+        pwd = st.text_input("輸入管理員密碼", type="password")
+        if pwd == "sdg10admin": # 這是你的管理員密碼，可以自己改
+            st.session_state.is_admin = True
+        else:
+            st.session_state.is_admin = False
 
-# --- 3. 實質匹配與效能驗證頁面 ---
+# --- 3. 實質匹配頁面 ---
 st.header("🤖 AI 實質資源匹配與效能驗證")
 
 if not df.empty:
@@ -39,11 +49,9 @@ if not df.empty:
             u_pain = st.text_input("目前最大困難 (關鍵字)", placeholder="例如：學費、看病")
             
             if st.button("立即進行實質匹配", type="primary"):
-                # --- 效能測試開始 ---
                 start_time = time.time()
                 with st.spinner("後端正在檢索數據庫..."):
                     time.sleep(0.5) 
-                    # 根據類別過濾 CSV 內容
                     matched_results = df[df["category"] == u_need]
                 end_time = time.time()
                 
@@ -53,51 +61,40 @@ if not df.empty:
     with col_out:
         if "results" in st.session_state:
             st.subheader("🎯 匹配到的解決方案")
-            st.caption(f"⚡ 後端效能驗證：本次檢索耗時 {st.session_state.exec_time:.4f} 秒")
+            st.caption(f"⚡ 後端效能驗證：{st.session_state.exec_time:.4f} 秒")
             
             if not st.session_state.results.empty:
                 for _, row in st.session_state.results.iterrows():
                     with st.expander(f"📌 {row['name']}", expanded=True):
                         st.write(f"**實質內容：** {row['description']}")
-                        st.write(f"**適合對象：** {row['target']}")
-                        # 【實質跳轉核心】：確保點選前往申請時可以真的到官方網站
+                        # 【實質跳轉核心】：點擊直接到官方網站
                         st.link_button(f"👉 立即前往官方網站", row["url"], type="primary")
                 
                 # --- 收集回饋並實質存檔 ---
                 st.divider()
                 st.subheader("📊 測試回饋與存檔")
-                # 修改滿意分數為 1-10 分
+                # 滿意分數 1-10 分
                 feedback_score = st.slider("此結果的解決力度評分 (1-10)：", 1, 10, 10)
                 feedback_msg = st.text_area("給技術團隊的優化建議：")
                 
                 if st.button("提交回饋並儲存至後端"):
                     fb_df = pd.DataFrame([[u_need, feedback_score, feedback_msg]], columns=["類別", "評分", "建議"])
-                    # 實質存入 feedback.csv
+                    # 資料悄悄存入 feedback.csv
                     fb_df.to_csv("feedback.csv", mode='a', index=False, header=not os.path.exists("feedback.csv"))
-                    st.success("回饋已存入 feedback.csv！下方的數據中心將同步更新。")
-                    time.sleep(1)
-                    st.rerun()
+                    st.success("回饋已安全存入後端系統。")
             else:
                 st.warning("目前數據庫中尚無匹配項。")
-        else:
-            st.info("請在左側選擇需求並點擊按鈕。")
-else:
-    st.error("請檢查 resources.csv 是否已正確上傳。")
 
-# --- 4. 後端數據驗證中心 (證明存檔成功) ---
-st.divider()
-st.header("📊 後端數據驗證中心")
-st.write("此區塊用於展示 `feedback.csv` 中的實時回傳資料。")
-
-if os.path.exists("feedback.csv"):
-    try:
+# --- 4. 隱藏的數據驗證中心 (只有管理員看得到) ---
+if admin_mode and st.session_state.get("is_admin"):
+    st.divider()
+    st.header("📊 管理員後端數據中心")
+    if os.path.exists("feedback.csv"):
         display_df = pd.read_csv("feedback.csv")
-        st.dataframe(display_df.tail(10), use_container_width=True) # 顯示最後 10 筆
+        st.write("這是目前儲存在後端的完整紀錄：")
+        st.dataframe(display_df, use_container_width=True)
         
-        # 提供下載按鈕給黃騵褘同學下載報告
         csv_data = display_df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button(label="📥 下載實質測試報告 (CSV)", data=csv_data, file_name="feedback_report.csv")
-    except:
-        st.write("暫時無法讀取回饋資料。")
-else:
-    st.info("等待第一筆回饋資料中...")
+        st.download_button(label="📥 下載完整測試報告", data=csv_data, file_name="admin_report.csv")
+    else:
+        st.info("目前後端尚無紀錄。")
