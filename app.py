@@ -44,8 +44,8 @@ with st.sidebar:
 if page == "🏠 專案首頁":
     st.markdown("""
         <div class="hero-box">
-            <h1 style="color: white; font-size: 3rem;">SDG 10 智慧資源分配平台</h1>
-            <h3 style="color: white;">🌟 隊名：資源守護隊</h3>
+            <h1 style="color: white; font-size: 3rem;">SDG 10 減少不平等</h1>
+            <h3 style="color: white;">🌟 隊名：兜住喜被搶走ㄌㄜˊ</h3>
             <p style="font-size: 1.2rem;">組員：吳暐承、唐正軒、紀重仰、黃騵褘</p>
         </div>
     """, unsafe_allow_html=True)
@@ -72,11 +72,13 @@ if page == "🏠 專案首頁":
         3. **普及推廣：** 開發 LINE Bot 或 App，讓長者與偏鄉族群更易操作。
         """)
         
-        st.markdown("### 📚 參考資料")
-        with st.expander("查看參考來源"):
-            st.write("- 行政院永續發展委員會：SDG 10 目標說明")
-            st.write("- 衛福部社會司：弱勢族群社會福利資源手冊")
-            st.write("- 天下雜誌《未來城市》：SDGs 永續發展專欄")
+        st.markdown("<p class='card-title'>📚 參考資料</p>", unsafe_allow_html=True)
+        st.markdown("""
+        * 🔗 [**目標 10：消弭不平等 (Global Goals)**](https://globalgoals.tw/10-reduced-inequalities)
+        * 🔗 [行政院國家永續發展委員會：目標 10](https://nsdn.ndc.gov.tw/news/index/42)
+        * 🔗 [衛福部社會福利資源查詢系統](https://reurl.cc/9vQyXj)
+        * 🔗 [天下雜誌：SDGs 減少不平等專欄](https://futurecity.cw.com.tw/special/SDGs)
+        """)
 
 # --- 4. 頁面 B：AI 實質資源匹配 (原本的核心代碼) ---
 elif page == "🤖 AI 實質資源匹配":
