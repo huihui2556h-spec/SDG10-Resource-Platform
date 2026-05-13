@@ -10,7 +10,7 @@ st.set_page_config(page_title="SDG 10 智慧資源分配平台", layout="wide")
 @st.cache_data
 def load_db():
     try:
-        # 讀取 resources.csv 資料庫
+        # 讀取資源庫
         return pd.read_csv("resources.csv")
     except Exception:
         return pd.DataFrame(columns=["category", "name", "target", "description", "url"])
@@ -23,12 +23,11 @@ with st.sidebar:
     st.info("目標：減少資源分配不均")
     st.divider()
     
-    # 分頁導覽
     page = st.radio("功能選單", ["🤖 AI 實質資源匹配", "📊 管理員數據中心"])
     
     st.divider()
     st.write("**核心團隊：**")
-    # 名單格式優化
+    # 名單分行顯示
     st.success("👤 吳暐承\n\n👤 唐正軒\n\n👤 紀重仰\n\n👤 黃騵褘")
 
 # --- 3. 頁面 A：AI 實質資源匹配 ---
@@ -41,21 +40,29 @@ if page == "🤖 AI 實質資源匹配":
         with col_in:
             with st.container(border=True):
                 st.subheader("📝 填寫需求")
-                u_need = st.selectbox("您的需求類型", df["category"].unique())
-                u_pain = st.text_input("描述您的困難 (例如：低收、學費)", placeholder="請輸入關鍵字")
+                u_need = st.selectbox("1. 選擇您的需求類型", df["category"].unique())
+                
+                # --- 【新增】：困難點選項與手動輸入結合 ---
+                pain_options = ["低收入戶", "學費負擔", "身心障礙", "偏鄉交通", "法律諮詢", "找工作", "租屋補貼", "緊急救助"]
+                u_pains = st.multiselect("2. 勾選您的具體困難 (可多選)", pain_options)
+                u_custom = st.text_input("3. 其他補充描述 (選填)", placeholder="例如：新住民身分")
                 
                 if st.button("立即進行實質匹配", type="primary"):
                     start_time = time.time()
                     with st.spinner("AI 正在分析最合適的管道..."):
                         time.sleep(0.5) 
                         
-                        # 取得該類別資料
                         category_matches = df[df["category"] == u_need]
                         
-                        # 關鍵字意圖自動擴展
-                        search_pattern = u_pain if u_pain else "補助|支援"
-                        if "低收" in u_pain:
-                            search_pattern = "低收|低收入|弱勢|助學|救助"
+                        # 整合勾選與手動輸入的關鍵字
+                        combined_pains = "|".join(u_pains) if u_pains else ""
+                        if u_custom:
+                            combined_pains = f"{combined_pains}|{u_custom}" if combined_pains else u_custom
+                        
+                        # 關鍵字意圖自動擴展 (解決低收等用語差異)
+                        search_pattern = combined_pains if combined_pains else "補助|支援"
+                        if "低收" in search_pattern:
+                            search_pattern = f"{search_pattern}|低收入|弱勢|助學|救助"
                         
                         # 執行匹配
                         refined_matches = category_matches[
@@ -64,7 +71,7 @@ if page == "🤖 AI 實質資源匹配":
                             category_matches['target'].str.contains(search_pattern, na=False, regex=True)
                         ]
                         
-                        # 【最有幫助推薦】：只取第一筆
+                        # 只取第一筆最有幫助的
                         if not refined_matches.empty:
                             st.session_state.best_match = refined_matches.iloc[0]
                             st.session_state.is_precise = True
@@ -83,13 +90,11 @@ if page == "🤖 AI 實質資源匹配":
                 
                 row = st.session_state.best_match
                 
-                # 語句優化
                 if st.session_state.get("is_precise"):
-                    st.success(f"✅ 已為您匹配到與「{u_pain}」高度相關的支援管道：")
+                    st.success(f"✅ 根據您的具體情況，AI 推薦以下最合適的支援管道：")
                 else:
-                    st.info(f"💡 已為您提供「{u_need}」相關的主要支援管道：")
+                    st.info(f"💡 根據「{u_need}」類別，為您推薦主要的支援管道：")
                 
-                # 只顯示單一推薦卡片
                 with st.container(border=True):
                     st.subheader(f"📌 {row['name']}")
                     st.write(f"**實質內容：** {row['description']}")
@@ -100,7 +105,6 @@ if page == "🤖 AI 實質資源匹配":
                         
                     st.link_button(f"👉 立即前往官方網站申請", row["url"], type="primary")
                 
-                # 測試回饋與實質存檔
                 st.divider()
                 st.subheader("📊 測試回饋與存檔")
                 feedback_score = st.slider("此方案對您的解決力度 (1-10)：", 1, 10, 10)
@@ -119,10 +123,10 @@ if page == "🤖 AI 實質資源匹配":
 elif page == "📊 管理員數據中心":
     st.header("📊 管理員後端驗證中心")
     
-    # 密碼驗證邏輯
+    # 進入式密碼驗證
     pwd = st.text_input("請輸入管理員授權碼以查看數據", type="password")
     
-    if pwd == "1234":
+    if pwd == "1234": # 密碼設定為 1234
         st.success("身分驗證成功，正在讀取後端資料庫...")
         st.divider()
         
@@ -130,7 +134,7 @@ elif page == "📊 管理員數據中心":
             try:
                 display_df = pd.read_csv("feedback.csv")
                 st.write("### 📥 使用者測試回饋紀錄")
-                st.dataframe(display_df.iloc[::-1], use_container_width=True) # 最新回饋排在最前面
+                st.dataframe(display_df.iloc[::-1], use_container_width=True)
                 
                 csv_data = display_df.to_csv(index=False).encode('utf-8-sig')
                 st.download_button(label="📥 下載完整測試報告 (.csv)", data=csv_data, file_name="admin_report.csv")
