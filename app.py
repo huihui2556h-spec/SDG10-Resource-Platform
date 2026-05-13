@@ -31,7 +31,7 @@ with st.sidebar:
     admin_mode = st.checkbox("開啟管理員模式")
     if admin_mode:
         pwd = st.text_input("輸入管理員密碼", type="password")
-        if pwd == "sdg10admin": 1234
+        if pwd == "sdg10admin":1234
             st.session_state.is_admin = True
         else:
             st.session_state.is_admin = False
