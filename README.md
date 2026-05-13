@@ -1,0 +1,1 @@
+# SDG10-Resource-Platform
