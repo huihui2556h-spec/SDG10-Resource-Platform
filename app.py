@@ -75,10 +75,9 @@ if page == "🏠 專案首頁":
         st.markdown("<p class='card-title'>📚 參考資料</p>", unsafe_allow_html=True)
         st.markdown("""
         * 🔗 [**目標 10：消弭不平等 (Global Goals)**](https://globalgoals.tw/10-reduced-inequalities)
-        * 🔗 [行政院國家永續發展委員會：目標 10](https://nsdn.ndc.gov.tw/news/index/42)
-        * 🔗 [衛福部社會福利資源查詢系統](https://reurl.cc/9vQyXj)
-        * 🔗 [天下雜誌：SDGs 減少不平等專欄](https://futurecity.cw.com.tw/special/SDGs)
-        """)
+        * 🔗 [行政院國家永續發展委員會：目標 10](https://ncsd.ndc.gov.tw/Fore/SDG10)
+        * 🔗 [衛福部社會福利資源查詢系統](https://swft.sfaa.gov.tw/)
+        
 
 # --- 4. 頁面 B：AI 實質資源匹配 (原本的核心代碼) ---
 elif page == "🤖 AI 實質資源匹配":
